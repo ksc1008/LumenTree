@@ -1,9 +1,24 @@
 package com.example.lumentree.core.domain.getdata
 
+import com.example.lumentree.core.data.repository.DeviceInfoRepository
+import com.example.lumentree.core.data.repository.DeviceListRepository
 import com.example.lumentree.core.model.device.DeviceFormalStatus
+import javax.inject.Inject
 
-class GetSelectedDeviceDataUseCase {
-    suspend operator fun invoke(macAddress: String): Result<DeviceFormalStatus> {
-        return Result.failure(Exception())
+class GetSelectedDeviceDataUseCase @Inject constructor(
+    private val deviceListRepository: DeviceListRepository,
+    private val deviceInfoRepository: DeviceInfoRepository
+) {
+    suspend operator fun invoke(): Result<DeviceFormalStatus> {
+        val result = deviceListRepository.fetchConnectedDevice()
+
+        result.fold(
+            onSuccess = {
+                return deviceInfoRepository.getDeviceStatus(it)
+            },
+            onFailure = {
+                return Result.failure(it)
+            }
+        )
     }
 }

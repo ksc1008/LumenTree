@@ -31,23 +31,7 @@ class MainActivity : ComponentActivity() {
             var nameValue by remember { mutableStateOf("hello") }
             LumenTreeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(Modifier.padding(innerPadding)) {
-                        DeviceNameField(
-                            Modifier
-                                .width(300.dp)
-                                .height(50.dp),
-                            nameValue,
-                            true
-                        ) {
-                        }
 
-                        DeviceStateIndicator(
-                            modifier = Modifier.width(300.dp),
-                            autoLightEnabled = true,
-                            asmrEnabled = true,
-                            wifiEnabled = true
-                        )
-                    }
                 }
             }
         }

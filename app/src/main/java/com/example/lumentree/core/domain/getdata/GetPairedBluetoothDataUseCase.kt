@@ -1,9 +1,9 @@
 package com.example.lumentree.core.domain.getdata
 
+import com.example.lumentree.core.data.repository.DeviceListRepository
 import com.example.lumentree.core.model.bt.BluetoothDevice
+import javax.inject.Inject
 
-class GetPairedBluetoothDataUseCase {
-    suspend operator fun invoke(): Result<List<BluetoothDevice>> {
-        return Result.failure(Exception())
-    }
+class GetPairedBluetoothDataUseCase @Inject constructor(private val repository: DeviceListRepository) {
+    suspend operator fun invoke() = repository.fetchPairedDevice()
 }
