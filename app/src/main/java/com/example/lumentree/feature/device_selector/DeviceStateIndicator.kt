@@ -30,7 +30,7 @@ fun DeviceIndicatorPreview() {
     LumenTreeTheme {
         DeviceStateIndicator(
             wifiEnabled = true,
-            autoLightEnabled = true,
+            autoLightEnabled = false,
             asmrEnabled = true,
             iconSize = 22.dp
         )
@@ -74,7 +74,7 @@ fun DeviceStateIndicator(
 }
 
 @Composable
-fun IndicatorIcon(
+private fun IndicatorIcon(
     painter: Painter,
     enabled: Boolean,
     contentDescription: String,
