@@ -1,7 +1,5 @@
 package com.example.lumentree.feature.device_selector
 
-import java.lang.Exception
-
 sealed class DeviceSelectorUiState {
     data object Fetching : DeviceSelectorUiState()
 
@@ -15,7 +13,7 @@ sealed class DeviceSelectorUiState {
     ) : DeviceSelectorUiState()
 
     data class Error(
-        val cause: Exception,
+        val cause: Throwable,
         val message: String
     ) : DeviceSelectorUiState()
 }

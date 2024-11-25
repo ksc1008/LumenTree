@@ -1,6 +1,6 @@
 [versions]
 agp = "8.6.1"
-kotlin = "1.9.0"
+kotlin = "1.9.10"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -13,10 +13,10 @@ legacySupportV4 = "1.0.0"
 lifecycleLivedataKtx = "2.8.7"
 lifecycleViewmodelKtx = "2.8.7"
 fragmentKtx = "1.8.5"
-hilt = "2.52"
+hilt = "2.48.1"
 hiltExt = "1.2.0"
 androidxHiltNavigationCompose = "1.2.0"
-ksp = "2.0.21-1.0.25"
+ksp = "1.9.10-1.0.13"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -56,4 +56,3 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-

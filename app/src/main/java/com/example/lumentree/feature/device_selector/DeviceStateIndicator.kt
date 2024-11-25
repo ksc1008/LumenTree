@@ -50,7 +50,7 @@ fun DeviceStateIndicator(
             .padding(
                 horizontal = 7.dp, vertical = 5.dp
             ),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(35.dp),
     ) {
         IndicatorIcon(
             painter = painterResource(R.drawable.round_wifi_24),
