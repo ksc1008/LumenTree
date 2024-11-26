@@ -1,6 +1,7 @@
 package com.example.lumentree.core.data.repository
 
 import com.example.lumentree.core.model.device.DeviceInfo
+import com.example.lumentree.core.model.error.NoDeviceFoundError
 import javax.inject.Inject
 
 internal class FakeDeviceListRepositoryImpl @Inject constructor(): DeviceListRepository {
@@ -9,7 +10,7 @@ internal class FakeDeviceListRepositoryImpl @Inject constructor(): DeviceListRep
     }
 
     override suspend fun fetchPairedDevice(): Result<List<DeviceInfo>> {
-        TODO("Not yet implemented")
+        return Result.failure(NoDeviceFoundError())
     }
 
     override suspend fun connectToDevice(deviceInfo: DeviceInfo): Result<Unit> {
