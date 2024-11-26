@@ -1,54 +1,93 @@
 package com.example.lumentree.feature.device_colors
 
-import android.icu.text.CaseMap.Upper
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lumentree.app.di.IoDispatcher
 import com.example.lumentree.core.domain.getdata.GetDeviceColorDataUseCase
+import com.example.lumentree.core.domain.getdata.GetSelectedDeviceDataUseCase
 import com.example.lumentree.core.model.device.ColorState
 import com.example.lumentree.core.model.device.DeviceColorInfo
-import com.example.lumentree.core.model.device.DeviceInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DeviceColorsViewModel @Inject constructor(
     private val getDeviceColorDataUseCase: GetDeviceColorDataUseCase,
+    private val getDeviceFormalStatusUseCase: GetSelectedDeviceDataUseCase,
     @IoDispatcher
     private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow<DeviceColorUIState>(
-        DeviceColorUIState.Fetching
-    )
+    private val _uiState by lazy { initiateDeviceColorState() }
 
     val uiState = _uiState.asStateFlow()
 
-    fun updateDeviceColorState(deviceInfo: DeviceInfo) {
+    fun updateDeviceColorState() {
         viewModelScope.launch(ioDispatcher) {
-            val result = getDeviceColorDataUseCase(deviceInfo)
+            val result = getDeviceColorDataUseCase()
             handleDeviceColorResult(result)
         }
+    }
+
+    private fun initiateDeviceColorState(): MutableStateFlow<DeviceColorUIState> {
+        val state = MutableStateFlow<DeviceColorUIState>(
+            DeviceColorUIState.Fetching
+        )
+
+        viewModelScope.launch(ioDispatcher) {
+            val name: String
+            val upperColor: List<DeviceColorInfo>
+            val lowerColor: List<DeviceColorInfo>
+            val formalDataFetchResult = getDeviceFormalStatusUseCase().getOrElse {
+                handleFailure(it)
+                return@launch
+            }
+            val colorDataFetchResult = getDeviceColorDataUseCase().getOrElse {
+                handleFailure(it)
+                return@launch
+            }
+
+            name = formalDataFetchResult.name
+
+            val mapped = mapDeviceColorResult(colorDataFetchResult)
+            upperColor = mapped.first
+            lowerColor = mapped.second
+
+            state.value = DeviceColorUIState.Fetched(
+                deviceName = name,
+                deviceColorsUpper = upperColor,
+                deviceColorsLower = lowerColor
+            )
+        }
+
+        return state
+    }
+
+    private fun handleFailure(throwable: Throwable) {
+        _uiState.value = DeviceColorUIState.FetchFailed(
+            cause = throwable,
+            message = throwable.message ?: ""
+        )
     }
 
     private fun handleDeviceColorResult(result: Result<Set<DeviceColorInfo>>) {
         result.fold(
             onSuccess = {
                 val newDeviceColorInfo = mapDeviceColorResult(it)
-                when(uiState.value) {
-                    is DeviceColorUIState.FetchFailed -> TODO()
-                    is DeviceColorUIState.Fetched -> TODO()
-                    DeviceColorUIState.Fetching -> TODO()
+                (uiState.value as? DeviceColorUIState.Fetched)?.let {
+                    _uiState.value = it.copy(
+                        deviceColorsUpper = newDeviceColorInfo.first,
+                        deviceColorsLower = newDeviceColorInfo.second
+                    )
                 }
             },
             onFailure = {
                 _uiState.value = DeviceColorUIState.FetchFailed(
-                    it.message ?: "",
-                    it
+                    message = it.message ?: "",
+                    cause = it
                 )
             }
         )
@@ -77,7 +116,7 @@ class DeviceColorsViewModel @Inject constructor(
     }
 
     companion object {
-        private val UpperWeatherStates = setOf<ColorState>(
+        private val UpperWeatherStates = setOf(
             ColorState.NIGHT
         )
 
