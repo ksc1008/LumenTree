@@ -23,6 +23,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.lumentree.R
+import com.example.lumentree.ui.styles.deviceNameEditTextStyle
+import com.example.lumentree.ui.styles.deviceNameTextStyle
 import com.example.lumentree.ui.theme.LumenTreeTheme
 
 @Preview(showBackground = true)

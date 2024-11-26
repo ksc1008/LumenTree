@@ -7,4 +7,6 @@ enum class ColorState { NIGHT, SUNNY, CLOUDY, RAINY, SNOWY, HOTTER_THAN_YESTERDA
 data class DeviceColorInfo(
     val color: LightColor,
     val state: ColorState
-)
+) {
+    fun getComposeColor() = color.getComposeColor()
+}
