@@ -36,14 +36,13 @@ fun DeviceColorItem(
 ) {
     Row(
         modifier.fillMaxWidth()
-            .height(50.dp)
-            .padding(horizontal = 21.dp),
+            .height(50.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             modifier = Modifier
-                .size(24.dp)
-                .padding(end = 12.dp),
+                .padding(end = 12.dp)
+                .size(20.dp),
             painter = painterResource(mapWeatherStateToResource(colorInfo.state)),
             contentDescription = null,
             colorFilter = ColorFilter.tint(Color.Black)
@@ -54,10 +53,11 @@ fun DeviceColorItem(
                 .clip(CircleShape)
                 .border(
                     width = 1.dp,
-                    color = Color(0x70000000),
+                    color = Color(0x33000000),
                     CircleShape
                 )
                 .size(width = 48.dp, height = 48.dp)
+                .padding(1.dp)
                 .background(
                     SolidColor(colorInfo.getComposeColor())
                 )
