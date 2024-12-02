@@ -12,6 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -38,15 +41,18 @@ fun DeviceControlScreen(
 @Preview(showBackground = true)
 @Composable
 fun DeviceControlScreenPreview() {
+    var deviceOn by remember { mutableStateOf(true) }
+    var deviceAuto by remember { mutableStateOf(true) }
+
     DeviceControlScreenContent(
         Modifier.fillMaxSize(),
         state = DeviceControlUiState.Ready(
             deviceName = "Preview Device",
-            isOn = true,
-            isAuto = false
+            isOn = deviceOn,
+            isAuto = deviceAuto
         ),
-        powerButtonClick = {},
-        autoSwitchClick = {}
+        powerButtonClick = { deviceOn = !deviceOn },
+        autoSwitchClick = { deviceAuto = !deviceAuto }
     )
 }
 
