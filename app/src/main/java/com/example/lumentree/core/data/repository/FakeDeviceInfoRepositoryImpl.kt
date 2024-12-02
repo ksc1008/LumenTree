@@ -4,10 +4,66 @@ import com.example.lumentree.core.model.device.ColorState
 import com.example.lumentree.core.model.device.DeviceColorInfo
 import com.example.lumentree.core.model.device.DeviceFormalStatus
 import com.example.lumentree.core.model.device.DeviceInfo
-import com.example.lumentree.core.model.error.NoDeviceFoundError
 import com.example.lumentree.core.model.light.ColorCode
 import com.example.lumentree.core.model.light.LightColor
 import javax.inject.Inject
+
+internal fun createPreviewSet(): Set<DeviceColorInfo> {
+    val set = setOf(
+        DeviceColorInfo(
+            state = ColorState.NIGHT,
+            color = LightColor(
+                "따뜻한 톤",
+                color = ColorCode("FFF0D4")
+            )
+        ),
+
+        DeviceColorInfo(
+            state = ColorState.SUNNY,
+            color = LightColor(
+                "밝은 노랑색",
+                color = ColorCode("FFFCA0")
+            )
+        ),
+        DeviceColorInfo(
+            state = ColorState.CLOUDY,
+            color = LightColor(
+                "하늘색",
+                color = ColorCode("ADFCFF")
+            )
+        ),
+        DeviceColorInfo(
+            state = ColorState.RAINY,
+            color = LightColor(
+                "자주색",
+                color = ColorCode("B2A3BF")
+            )
+        ),
+        DeviceColorInfo(
+            state = ColorState.SNOWY,
+            color = LightColor(
+                "회색",
+                color = ColorCode("C4C4C4")
+            )
+        ),
+        DeviceColorInfo(
+            state = ColorState.COLDER_THAN_YESTERDAY,
+            color = LightColor(
+                "파랑색",
+                color = ColorCode("1A7EF5")
+            )
+        ),
+        DeviceColorInfo(
+            state = ColorState.HOTTER_THAN_YESTERDAY,
+            color = LightColor(
+                "주황색",
+                color = ColorCode("FF932B")
+            )
+        )
+    )
+
+    return set
+}
 
 internal class FakeDeviceInfoRepositoryImpl @Inject constructor(): DeviceInfoRepository {
     override suspend fun getDeviceStatus(device: DeviceInfo): Result<DeviceFormalStatus> {
@@ -23,17 +79,7 @@ internal class FakeDeviceInfoRepositoryImpl @Inject constructor(): DeviceInfoRep
 
     override suspend fun getDeviceColorInfoStatus(device: DeviceInfo): Result<Set<DeviceColorInfo>> {
         return Result.success(
-            setOf(
-                DeviceColorInfo(LightColor("A", color = ColorCode("#ff0000")), ColorState.CLOUDY),
-                DeviceColorInfo(LightColor("B", color = ColorCode("#0ff000")), ColorState.NIGHT),
-                DeviceColorInfo(LightColor("C", color = ColorCode("#0fff00")), ColorState.RAINY),
-                DeviceColorInfo(LightColor("D", color = ColorCode("#000ff0")), ColorState.SNOWY),
-                DeviceColorInfo(LightColor("E", color = ColorCode("#000fff")), ColorState.SUNNY),
-                DeviceColorInfo(LightColor("F", color = ColorCode("#ff0ff0")), ColorState.COLDER_THAN_YESTERDAY),
-                DeviceColorInfo(LightColor("G", color = ColorCode("#ff00ff")), ColorState.HOTTER_THAN_YESTERDAY),
-            )
+            createPreviewSet()
         )
     }
-
-
 }

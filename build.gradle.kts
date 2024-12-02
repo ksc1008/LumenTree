@@ -5,7 +5,8 @@ buildscript {
     }
 
     dependencies {
-        classpath("org.owasp:dependency-check-gradle:11.1.0")
+        classpath(libs.dependency.check.gradle)
+        classpath(libs.androidx.navigation.safe.args.gradle.plugin)
     }
 }
 

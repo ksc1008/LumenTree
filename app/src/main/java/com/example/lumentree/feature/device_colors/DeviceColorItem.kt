@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,11 +33,16 @@ import com.example.lumentree.core.model.light.LightColor
 @Composable
 fun DeviceColorItem(
     modifier: Modifier,
-    colorInfo: DeviceColorInfo
-) {
+    colorInfo: DeviceColorInfo,
+    onClick: (colorState: ColorState) -> Unit
+    ) {
     Row(
-        modifier.fillMaxWidth()
-            .height(50.dp),
+        modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .clickable {
+                onClick(colorInfo.state)
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -49,7 +55,7 @@ fun DeviceColorItem(
         )
         Box(
             modifier = Modifier
-                .padding(end=29.dp)
+                .padding(end = 29.dp)
                 .clip(CircleShape)
                 .border(
                     width = 1.dp,
@@ -71,11 +77,13 @@ fun DeviceColorItem(
 
 @Preview(showBackground = true)
 @Composable
-fun DeviceColorItemPreview(){
+fun DeviceColorItemPreview() {
     DeviceColorItem(
         Modifier.height(50.dp),
         DeviceColorInfo(color = LightColor("밝은 노란색", ColorCode("#fff666")), ColorState.SUNNY)
-    )
+    ){
+
+    }
 }
 
 private fun mapWeatherStateToResource(colorState: ColorState): Int =

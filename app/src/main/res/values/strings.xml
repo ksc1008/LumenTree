@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">LumenTree</string>
+    
+    <string name="light_control">제어</string>
+    <string name="light_theme">테마</string>
+    <string name="light_config">환경 설정</string>
 </resources>

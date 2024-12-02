@@ -20,19 +20,23 @@ import com.example.lumentree.core.model.light.LightColor
 fun DeviceColorItemList(
     modifier: Modifier = Modifier,
     colorItemListUpper: List<DeviceColorInfo>,
-    colorItemListLower: List<DeviceColorInfo>
+    colorItemListLower: List<DeviceColorInfo>,
+    colorItemClick: (colorState: ColorState) -> Unit
 ) {
-    LazyColumn(modifier.fillMaxWidth()
-        .padding(horizontal = 21.dp)
+    LazyColumn(
+        modifier
+            .fillMaxWidth()
+            .padding(horizontal = 21.dp)
     ) {
         item {
             Text(
                 modifier = Modifier.padding(bottom = 14.dp),
-                text = NIGHTTIME_LABEL)
+                text = NIGHTTIME_LABEL
+            )
         }
 
         items(colorItemListUpper) { item ->
-            DeviceColorItem(modifier = Modifier, item)
+            DeviceColorItem(modifier = Modifier, item, onClick = colorItemClick)
         }
 
         item {
@@ -45,12 +49,17 @@ fun DeviceColorItemList(
         item {
             Text(
                 modifier = Modifier.padding(bottom = 14.dp),
-                text = DAYTIME_LABEL)
+                text = DAYTIME_LABEL
+            )
         }
 
         items(colorItemListLower) { item ->
-            DeviceColorItem(modifier = Modifier
-                .padding(bottom = 22.dp), item)
+            DeviceColorItem(
+                modifier = Modifier
+                    .padding(bottom = 22.dp),
+                colorInfo = item,
+                onClick = colorItemClick
+            )
         }
     }
 }
@@ -65,7 +74,9 @@ fun DeviceColorItemListPreview() {
             .size(width = 412.dp, height = 600.dp),
         colorItemListUpper = previewLists.first,
         colorItemListLower = previewLists.second
-    )
+    ) {
+
+    }
 }
 
 internal fun createPreviewList(): Pair<List<DeviceColorInfo>, List<DeviceColorInfo>> {

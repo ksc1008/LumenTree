@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.lumentree.core.model.device.DeviceInfo
 
 @Preview(showBackground = true)
 @Composable
@@ -46,7 +47,9 @@ fun DeviceSelectorScreenPreview() {
 @Composable
 fun DeviceSelectorScreen(
     modifier: Modifier = Modifier,
-    viewModel: DeviceSelectorViewModel = hiltViewModel()
+    viewModel: DeviceSelectorViewModel = hiltViewModel(),
+    deviceClick: () -> Unit = {},
+    settingButtonClick: () -> Unit = {}
 ) {
     val uiState = viewModel.uiState.collectAsState()
 
@@ -54,7 +57,8 @@ fun DeviceSelectorScreen(
         modifier = modifier,
         uiState = uiState.value,
         onDeviceNameEditEnd = viewModel::onNameEditFinished,
-        onDeviceClick = viewModel::onDeviceClick
+        onDeviceClick = deviceClick,
+        onSettingButtonClick = settingButtonClick
     )
 }
 
@@ -63,7 +67,8 @@ private fun DeviceSelectorScreenContent(
     modifier: Modifier = Modifier,
     uiState: DeviceSelectorUiState,
     onDeviceClick: () -> Unit = {},
-    onDeviceNameEditEnd: (String) -> Unit = {}
+    onDeviceNameEditEnd: (String) -> Unit = {},
+    onSettingButtonClick: () -> Unit = {}
 ) {
     when (uiState) {
         is DeviceSelectorUiState.Fetching -> {
@@ -75,7 +80,8 @@ private fun DeviceSelectorScreenContent(
                 modifier = modifier,
                 state = uiState,
                 onDeviceClick = onDeviceClick,
-                onDeviceNameEditEnd = onDeviceNameEditEnd
+                onDeviceNameEditEnd = onDeviceNameEditEnd,
+                onDeviceSettingClick = onSettingButtonClick
             )
 
         }
@@ -89,7 +95,8 @@ private fun DeviceSelectorScreenContent(
                 modifier = modifier,
                 state = uiState,
                 onDeviceClick = onDeviceClick,
-                onDeviceNameEditEnd = onDeviceNameEditEnd
+                onDeviceNameEditEnd = onDeviceNameEditEnd,
+                onDeviceSettingClick = onSettingButtonClick
             )
         }
 
@@ -101,6 +108,7 @@ private fun DeviceInfoScreen(
     modifier: Modifier = Modifier,
     state: DeviceSelectorUiState,
     onDeviceClick: () -> Unit,
+    onDeviceSettingClick: () -> Unit,
     onDeviceNameEditEnd: (String) -> Unit
 ) {
     var editable by remember { mutableStateOf(false) }
@@ -136,14 +144,17 @@ private fun DeviceInfoScreen(
                     onEditButtonClick = {
                         editable = true
                         editingState = it.deviceName
-                    }
-                ) { newValue ->
-                    editingState = newValue
-                }
+                    },
+                    onTextEdit = { newValue ->
+                        editingState = newValue
+                    },
+                    onSettingButtonClick = onDeviceSettingClick
+                )
             } ?: Text(
                 text = ADD_DEVICE_DESCRIPTION,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
                     .padding(top = 20.dp)
             )
         }
@@ -158,7 +169,8 @@ private fun DeviceInfo(
     editingState: String,
     editable: Boolean,
     onEditButtonClick: () -> Unit,
-    onTextEdit: (String) -> Unit
+    onTextEdit: (String) -> Unit,
+    onSettingButtonClick: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.Top, modifier = modifier) {
         DeviceNameField(
@@ -191,7 +203,7 @@ private fun DeviceInfo(
                 .align(Alignment.CenterHorizontally)
                 .padding(top = 30.dp)
                 .alpha(if (state is DeviceSelectorUiState.WithDevice) 1f else 0f),
-            onClick = {}
+            onClick = onSettingButtonClick
         ) {
             Text(SETTING_BUTTON_TEXT)
         }

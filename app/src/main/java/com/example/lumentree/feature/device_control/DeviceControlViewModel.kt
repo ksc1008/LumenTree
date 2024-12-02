@@ -62,7 +62,7 @@ class DeviceControlViewModel @Inject constructor(
             deviceName = deviceName
         )
 
-    private fun deviceReady(): Boolean = uiState.value !is DeviceControlUiState.Ready
+    private fun deviceReady(): Boolean = uiState.value is DeviceControlUiState.Ready
 
     private fun updateDeviceControl(switchOn: Boolean, autoSwitch: Boolean) {
         _uiState.value = DeviceControlUiState.Updating(

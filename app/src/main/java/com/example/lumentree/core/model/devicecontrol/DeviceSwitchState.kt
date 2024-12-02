@@ -1,10 +1,10 @@
 package com.example.lumentree.core.model.devicecontrol
 
-import java.sql.Time
+import java.time.LocalTime
 
-data class DeviceSwitchState (
+data class DeviceSwitchState(
     val lightSwitchOn: Boolean,
     val lightAutoSwitch: Boolean,
-    val autoSwitchOnTime: Time,
-    val autoSwitchOffTime: Time
+    val autoSwitchOnTime: LocalTime,
+    val autoSwitchOffTime: LocalTime
 )
