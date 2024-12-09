@@ -4,10 +4,12 @@ import com.example.lumentree.core.data.repository.DeviceColorRepository
 import com.example.lumentree.core.data.repository.DeviceControlRepository
 import com.example.lumentree.core.data.repository.DeviceInfoRepository
 import com.example.lumentree.core.data.repository.DeviceListRepository
+import com.example.lumentree.core.data.repository.DeviceNetworkRepository
 import com.example.lumentree.core.data.repositoryimplentation.DeviceColorRepositoryImpl
 import com.example.lumentree.core.data.repositoryimplentation.DeviceControlRepositoryImpl
 import com.example.lumentree.core.data.repositoryimplentation.DeviceInfoRepositoryImpl
 import com.example.lumentree.core.data.repositoryimplentation.DeviceListRepositoryImpl
+import com.example.lumentree.core.data.repositoryimplentation.DeviceNetworkRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -35,4 +37,9 @@ abstract class DataModule {
     internal abstract fun bindsDeviceColorRepository(
         deviceColorRepository: DeviceColorRepositoryImpl
     ): DeviceColorRepository
+
+    @Binds
+    internal abstract fun bindsDeviceNetworkRepository(
+        networkRepository: DeviceNetworkRepositoryImpl
+    ): DeviceNetworkRepository
 }

@@ -1,6 +1,14 @@
 package com.example.lumentree.feature.device_selector
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build.VERSION_CODES
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.ManagedActivityResultLauncher
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +26,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,11 +36,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
+
+val permissions = if (android.os.Build.VERSION.SDK_INT >= VERSION_CODES.S) arrayOf(
+    Manifest.permission.BLUETOOTH_SCAN,
+    Manifest.permission.BLUETOOTH_CONNECT
+) else arrayOf(
+    Manifest.permission.BLUETOOTH
+)
 
 @Preview(showBackground = true)
 @Composable
@@ -56,10 +74,33 @@ fun DeviceSelectorScreen(
     deviceClick: () -> Unit = {},
     settingButtonClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val uiState = viewModel.uiState.collectAsState()
 
-    LaunchedEffect(uiState.value is DeviceSelectorUiState.WithDevice){
-        while(true) {
+    val launcherMultiplePermissions = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissionsMap ->
+        val areGranted = permissionsMap.values.reduce { acc, next -> acc && next }
+        if (areGranted) {
+            viewModel.bluetoothPermissionCheckPass()
+        }
+    }
+
+
+    SideEffect {
+        if (uiState.value is DeviceSelectorUiState.PermissionChecking) {
+            checkAndRequestPermissions(
+                context = context,
+                permissions = permissions,
+                launcher = launcherMultiplePermissions
+            ) {
+                viewModel.bluetoothPermissionCheckPass()
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.value is DeviceSelectorUiState.WithDevice) {
+        while (true) {
             delay(1000)
             viewModel.refreshDeviceInfo()
         }
@@ -118,7 +159,8 @@ private fun DeviceInfoScreen(
     ) {
         Column(verticalArrangement = Arrangement.Center) {
             DeviceImageIndicator(
-                Modifier.size(width = 287.dp, height = 287.dp)
+                Modifier
+                    .size(width = 287.dp, height = 287.dp)
                     .align(Alignment.CenterHorizontally),
                 hasDevice = true,
                 offsetY = 60.dp,
@@ -194,6 +236,15 @@ private fun DeviceInfoScreen(
                         },
                         onSettingButtonClick = onDeviceSettingClick
                     )
+
+                DeviceSelectorUiState.PermissionChecking ->
+                    Text(
+                        text = PERMISSION_DESCRIPTION,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 20.dp)
+                    )
             }
         }
     }
@@ -246,5 +297,28 @@ private fun DeviceInfo(
             Text(SETTING_BUTTON_TEXT)
         }
 
+    }
+}
+
+fun checkAndRequestPermissions(
+    context: Context,
+    permissions: Array<String>,
+    launcher: ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>>,
+    pass: () -> Unit
+) {
+
+    /** 권한이 이미 있는 경우 **/
+    if (permissions.all {
+            ContextCompat.checkSelfPermission(
+                context,
+                it
+            ) == PackageManager.PERMISSION_GRANTED
+        }) {
+        pass()
+    }
+
+    /** 권한이 없는 경우 **/
+    else {
+        launcher.launch(permissions)
     }
 }

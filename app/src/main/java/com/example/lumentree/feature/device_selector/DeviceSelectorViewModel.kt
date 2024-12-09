@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lumentree.app.di.IoDispatcher
 import com.example.lumentree.core.data.repository.DeviceInfoRepository
+import com.example.lumentree.core.data.repository.DeviceNetworkRepository
 import com.example.lumentree.core.domain.getdata.ConnectToDeviceUseCase
+import com.example.lumentree.core.domain.getdata.GetDeviceInfoUseCase
 import com.example.lumentree.core.model.error.NoDeviceFoundException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -17,6 +19,7 @@ import javax.inject.Inject
 class DeviceSelectorViewModel @Inject constructor(
     private val connectDeviceUseCase: ConnectToDeviceUseCase,
     private val deviceInfoRepository: DeviceInfoRepository,
+    private val getDeviceInfoUseCase: GetDeviceInfoUseCase,
     @IoDispatcher
     private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -27,15 +30,19 @@ class DeviceSelectorViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private fun initializeUiState(): MutableStateFlow<DeviceSelectorUiState> {
-        val state = MutableStateFlow<DeviceSelectorUiState>(DeviceSelectorUiState.Connecting)
+        val state = MutableStateFlow<DeviceSelectorUiState>(DeviceSelectorUiState.PermissionChecking)
+        return state
+    }
 
+    fun bluetoothPermissionCheckPass() {
+        _uiState.value = DeviceSelectorUiState.Connecting
         viewModelScope.launch(ioDispatcher) {
             val result = connectDeviceUseCase()
             result.onFailure {
                 if (it is NoDeviceFoundException) {
-                    state.emit(DeviceSelectorUiState.NoDevice)
+                    _uiState.emit(DeviceSelectorUiState.NoDevice)
                 } else {
-                    state.emit(
+                    _uiState.emit(
                         DeviceSelectorUiState.Error(
                             it,
                             it.message ?: it::class.toString()
@@ -43,12 +50,11 @@ class DeviceSelectorViewModel @Inject constructor(
                     )
                 }
             }.onSuccess {
-                state.emit(DeviceSelectorUiState.Fetching)
+                _uiState.emit(DeviceSelectorUiState.Fetching)
                 fetchDeviceInfoAndUpdateState()
             }
         }
 
-        return state
     }
 
     private suspend fun fetchDeviceInfoAndUpdateState() {
@@ -57,13 +63,13 @@ class DeviceSelectorViewModel @Inject constructor(
     }
 
     private suspend fun fetchDeviceInfo(): DeviceSelectorUiState {
-        val result = deviceInfoRepository.getDeviceStatus()
+        val result = getDeviceInfoUseCase()
         result.onSuccess {
             return DeviceSelectorUiState.WithDevice(
                 deviceName = it.name,
-                wifiEnabled = true,
-                weatherEnabled = it.weatherEnabled,
-                autoLightEnabled = it.deviceTimingOption.enableAutoSwitch
+                wifiEnabled = it.connectedToWiFi,
+                weatherEnabled = it.weatherMode,
+                autoLightEnabled = it.autoSwitch
             )
         }.onFailure {
             return DeviceSelectorUiState.Error(
@@ -106,7 +112,7 @@ class DeviceSelectorViewModel @Inject constructor(
     }
 
     fun refreshDeviceInfo() {
-        if(uiState.value is DeviceSelectorUiState.WithDevice) {
+        if (uiState.value is DeviceSelectorUiState.WithDevice) {
             viewModelScope.launch(ioDispatcher) {
                 fetchDeviceInfoAndUpdateState()
             }

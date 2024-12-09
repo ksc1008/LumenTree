@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -16,7 +17,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.lumentree.core.model.device_config.DeviceTimingOption
+import com.example.lumentree.core.model.device_connect.DeviceConnectionInfo
+import com.example.lumentree.core.model.device_connect.WiFiConnectingState
+import com.example.lumentree.feature.device_settings.network_selector.NetworkSelectorDialog
 import com.example.lumentree.ui.composables.DeviceDetailUpperBody
+import kotlinx.coroutines.delay
 
 @Composable
 fun DeviceSettingsScreen(
@@ -24,13 +29,29 @@ fun DeviceSettingsScreen(
     viewModel: DeviceSettingViewModel = hiltViewModel()
 ) {
     val state by viewModel.deviceSettingState.collectAsState()
+    val dialogState by viewModel.wifiDialogState.collectAsState()
 
+    LaunchedEffect(state is DeviceSettingState.Loaded) {
+        while (true) {
+            delay(1000)
+            viewModel.refreshNetworkInfo()
+        }
+    }
+
+    (dialogState as? DeviceWifiSelectionDialogState.Opened)?.let {
+        NetworkSelectorDialog(
+            wifiList = it.wifiList,
+            onApply = viewModel::onWifiDialogApply,
+            onDismiss = viewModel::onWifiDialogDismiss
+        )
+    }
     DeviceSettingsScreenContent(
         modifier,
         state,
         onAutoOnTimeChanged = viewModel::onAutoOnTimeChanged,
         onAutoOffTimeChanged = viewModel::onAutoOffTimeChanged,
-        onWeatherChanged = viewModel::onWeatherModeChanged
+        onWeatherChanged = viewModel::onWeatherModeChanged,
+        onNetworkInfoClick = viewModel::onNetworkSettingClick
     )
 }
 
@@ -47,11 +68,17 @@ fun DeviceSettingsScreenPreview() {
                 autoTurnOffHour = 7,
                 autoTurnOffMinute = 25
             ),
-            enableWeather = true
+            enableWeather = true,
+            connectionState = DeviceConnectionInfo(
+                ssid = "Test AP",
+                connectingState = WiFiConnectingState.FAIL,
+                connected = false
+            )
         ),
         onAutoOnTimeChanged = { _, _ -> },
         onAutoOffTimeChanged = { _, _ -> },
-        onWeatherChanged = {}
+        onWeatherChanged = {},
+        onNetworkInfoClick = {}
     )
 }
 
@@ -61,7 +88,8 @@ fun DeviceSettingsScreenContent(
     state: DeviceSettingState,
     onAutoOnTimeChanged: (hour: Int, minute: Int) -> Unit,
     onAutoOffTimeChanged: (hour: Int, minute: Int) -> Unit,
-    onWeatherChanged: (toggle: Boolean) -> Unit
+    onWeatherChanged: (toggle: Boolean) -> Unit,
+    onNetworkInfoClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     Column {
@@ -105,6 +133,13 @@ fun DeviceSettingsScreenContent(
                     description = "자동으로 무드등의 전원이 꺼지고 1시간 동안 날씨에 따라 다른 색상을 밝힙니다",
                     toggleState = state.enableWeather,
                     onOptionClick = onWeatherChanged
+                )
+                HorizontalDivider()
+
+                NetworkInfoItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    state = state.connectionState,
+                    onClick = onNetworkInfoClick
                 )
             }
         }

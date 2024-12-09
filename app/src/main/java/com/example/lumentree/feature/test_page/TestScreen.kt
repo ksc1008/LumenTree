@@ -1,7 +1,6 @@
 package com.example.lumentree.feature.test_page
 
 import android.Manifest
-import android.bluetooth.BluetoothClass.Device
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build.VERSION_CODES
@@ -12,26 +11,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.github.skydoves.colorpicker.compose.AlphaSlider
-import com.github.skydoves.colorpicker.compose.BrightnessSlider
-import com.github.skydoves.colorpicker.compose.ColorEnvelope
-import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
-import kotlinx.coroutines.delay
 
 @Composable
 fun TestScreenContent(
@@ -62,12 +53,12 @@ fun TestScreen(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissionsMap ->
         val areGranted = permissionsMap.values.reduce { acc, next -> acc && next }
-    }
 
-    LaunchedEffect(Unit) {
-        while(true) {
-            viewModel.tick()
-            delay(500)
+        if(areGranted) {
+
+        }
+        else{
+
         }
     }
 
@@ -81,7 +72,9 @@ fun TestScreen(
                     context = context,
                     permissions = permissions,
                     launcher = launcherMultiplePermissions
-                )
+                ){
+
+                }
             }
         ){
             Text("Permission")
@@ -119,49 +112,16 @@ fun TestScreen(
         Button( onClick = viewModel::connect ) {
             Text("Connect")
         }
-        Row{
-            Button( onClick = viewModel::turnOn ) {
-                Text("On")
+        Row {
+            Button( onClick = viewModel::getNetworkList ) {
+                Text("Get Network List")
             }
-            Button( onClick = viewModel::turnOff ) {
-                Text("Off")
-            }
-
-        }
-        Row{
-            Button( onClick = viewModel::previewOn ) {
-                Text("Preview On")
-            }
-            Button( onClick = viewModel::previewOff ) {
-                Text("Preview Off")
+            Button( onClick = viewModel::getConnectionInfo ) {
+                Text("Get Connection Info")
             }
         }
-        Text(
-            connectionState
-        )
-        HsvColorPicker(
-            modifier = Modifier
-                .size(300.dp, 300.dp)
-                .padding(10.dp),
-            controller = controller,
-            onColorChanged = {
-                viewModel.updateColor(controller.selectedColor.value)
-            }
-        )
 
-        BrightnessSlider(
-            modifier = Modifier
-                .padding(10.dp)
-                .size(300.dp, 35.dp),
-            controller = controller
-        )
-
-        AlphaSlider(
-            modifier = Modifier
-                .padding(10.dp)
-                .size(300.dp, 35.dp),
-            controller = controller,
-        )
+        Text(connectionState)
     }
 }
 
@@ -181,6 +141,7 @@ fun checkAndRequestPermissions(
     context: Context,
     permissions: Array<String>,
     launcher: ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>>,
+    pass: ()->Unit
 ) {
 
     /** 권한이 이미 있는 경우 **/
@@ -190,6 +151,7 @@ fun checkAndRequestPermissions(
                 it
             ) == PackageManager.PERMISSION_GRANTED
         }) {
+
     }
 
     /** 권한이 없는 경우 **/

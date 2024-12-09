@@ -3,6 +3,8 @@ package com.example.lumentree.feature.device_selector
 sealed class DeviceSelectorUiState {
     data object Connecting : DeviceSelectorUiState()
 
+    data object PermissionChecking : DeviceSelectorUiState()
+
     data object Fetching : DeviceSelectorUiState()
 
     data object NoDevice : DeviceSelectorUiState()

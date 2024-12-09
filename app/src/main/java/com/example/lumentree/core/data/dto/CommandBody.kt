@@ -70,6 +70,15 @@ sealed class CommandBody {
         val startTime: String
     ) : CommandBody()
 
+    //    const val CONNECT_WIFI = "cw"
+    @Serializable
+    data class ConnectWifi(
+        @SerialName("ssid")
+        val ssid: String,
+        @SerialName("pw")
+        val password: String
+    ) : CommandBody()
+
     @Serializable
     data object EMPTY : CommandBody()
 }
@@ -89,4 +98,8 @@ object Commands {
     const val GET_DEVICE_CONTROL_STATE = "dcs"
     const val GET_DEVICE_COLORS = "dc"
     const val GET_DEVICE_SETTINGS = "ds"
+
+    const val GET_WIFI_LIST = "wl"
+    const val GET_CONNECTION_INFO = "ci"
+    const val CONNECT_WIFI = "cw"
 }

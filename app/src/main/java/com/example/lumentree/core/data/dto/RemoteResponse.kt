@@ -6,7 +6,10 @@ import com.example.lumentree.core.model.devicecontrol.DeviceRemoteControlStatus
 import com.example.lumentree.core.model.device_config.DeviceLocationInfo
 import com.example.lumentree.core.model.device_config.DeviceSetting
 import com.example.lumentree.core.model.device_config.DeviceTimingOption
+import com.example.lumentree.core.model.device_connect.DeviceConnectionInfo
 import com.example.lumentree.core.model.device_connect.DeviceWiFiConnectionInfo
+import com.example.lumentree.core.model.device_connect.WiFiAPInfo
+import com.example.lumentree.core.model.device_connect.WiFiConnectingState
 import com.example.lumentree.core.model.light.LightColor
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -56,6 +59,35 @@ data class ResponseWithDeviceSettings(
     val weatherEnabled: Boolean
 )
 
+//     const val GET_WIFI_LIST = "wl"
+@Serializable
+data class WifiData(
+    @SerialName("s")
+    val ssid: String,
+    @SerialName("q")
+    val signalPower: Int,
+    @SerialName("e")
+    val encrypted: Int
+)
+
+@Serializable
+data class ResponseWithWifiList(
+    @SerialName("data")
+    val data: List<WifiData>
+)
+
+//     const val GET_CONNECTION_INFO = "ci"
+@Serializable
+data class ResponseWithConnectionInfo(
+    @SerialName("con")
+    val connected: Boolean,
+    @SerialName("ssid")
+    val ssid: String?,
+    // IDLE, BUSY, FAIL
+    @SerialName("state")
+    val wifiState: String
+)
+
 fun ResponseWithNoBody.toVO(): Boolean =
     this.success
 
@@ -100,3 +132,26 @@ fun ResponseWithDeviceSettings.toVO(): DeviceSetting {
         weatherEnabled = this.weatherEnabled
     )
 }
+
+fun ResponseWithConnectionInfo.toVO(): DeviceConnectionInfo {
+    val state = try{
+        WiFiConnectingState.valueOf(this.wifiState)
+    } catch (e: IllegalArgumentException) {
+        WiFiConnectingState.FAIL
+    }
+    return DeviceConnectionInfo(
+        ssid = this.ssid?:"",
+        connected = this.connected,
+        connectingState = state
+    )
+}
+
+fun WifiData.toVO() =
+    WiFiAPInfo(
+        ssid = this.ssid,
+        strength = this.signalPower,
+        protected = this.encrypted == 1
+    )
+
+fun ResponseWithWifiList.toVO() =
+    this.data.map { it.toVO() }
