@@ -69,7 +69,7 @@ fun DeviceColorItem(
                 )
         )
         Text(
-            text = colorInfo.color.lightName
+            text = WeatherStateToNameDict[colorInfo.state]?:"알 수 없음"
         )
 
     }
@@ -80,7 +80,7 @@ fun DeviceColorItem(
 fun DeviceColorItemPreview() {
     DeviceColorItem(
         Modifier.height(50.dp),
-        DeviceColorInfo(color = LightColor("밝은 노란색", ColorCode("#fff666")), ColorState.SUNNY)
+        DeviceColorInfo(color = LightColor(ColorCode("#fff666"), 255), ColorState.SUNNY)
     ){
 
     }
@@ -93,6 +93,12 @@ private fun mapWeatherStateToResource(colorState: ColorState): Int =
         ColorState.CLOUDY -> R.drawable.rounded_cloud_24
         ColorState.RAINY -> R.drawable.rounded_rainy_24
         ColorState.SNOWY -> R.drawable.rounded_weather_snowy_24
-        ColorState.HOTTER_THAN_YESTERDAY -> R.drawable.rounded_brightness_high_24
-        ColorState.COLDER_THAN_YESTERDAY -> R.drawable.rounded_mode_cool_24
     }
+
+private val WeatherStateToNameDict = mapOf(
+    Pair(ColorState.NIGHT, "야간"),
+    Pair(ColorState.SUNNY, "맑은 날"),
+    Pair(ColorState.CLOUDY, "흐린 날"),
+    Pair(ColorState.RAINY, "비 오는 날"),
+    Pair(ColorState.SNOWY, "눈 오는 날"),
+)

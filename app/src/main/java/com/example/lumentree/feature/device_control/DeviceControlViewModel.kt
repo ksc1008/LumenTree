@@ -3,10 +3,9 @@ package com.example.lumentree.feature.device_control
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lumentree.app.di.IoDispatcher
-import com.example.lumentree.core.domain.devicecontrol.GetDeviceControlStateUseCase
-import com.example.lumentree.core.domain.devicecontrol.UpdateLightControlUseCase
-import com.example.lumentree.core.domain.getdata.GetSelectedDeviceDataUseCase
-import com.example.lumentree.core.model.devicecontrol.DeviceSwitchState
+import com.example.lumentree.core.data.repository.DeviceControlRepository
+import com.example.lumentree.core.data.repository.DeviceInfoRepository
+import com.example.lumentree.core.model.devicecontrol.DeviceRemoteControlStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,9 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DeviceControlViewModel @Inject constructor(
-    val getDeviceControlStateUseCase: GetDeviceControlStateUseCase,
-    val updateLightControlUseCase: UpdateLightControlUseCase,
-    val getDeviceFormalStatusUseCase: GetSelectedDeviceDataUseCase,
+    private val deviceControlRepository: DeviceControlRepository,
+    private val deviceInfoRepository: DeviceInfoRepository,
     @IoDispatcher
     val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -30,18 +28,18 @@ class DeviceControlViewModel @Inject constructor(
         val uiState = MutableStateFlow<DeviceControlUiState>(DeviceControlUiState.Fetching)
 
         viewModelScope.launch(ioDispatcher) {
-            deviceName = getDeviceFormalStatusUseCase().getOrElse {
+            deviceName = deviceInfoRepository.getDeviceStatus().getOrElse {
                 return@launch
             }.name
 
-            val result = getDeviceControlStateUseCase()
+            val result = deviceControlRepository.getLightControlState()
             processDeviceSwitchUpdateResult(result)
         }
 
         return uiState
     }
 
-    private fun processDeviceSwitchUpdateResult(result: Result<DeviceSwitchState>) {
+    private fun processDeviceSwitchUpdateResult(result: Result<DeviceRemoteControlStatus>) {
         result.fold(
             onSuccess = {
                 _uiState.value = mapDeviceSwitchToUiState(it)
@@ -55,30 +53,63 @@ class DeviceControlViewModel @Inject constructor(
         )
     }
 
-    private fun mapDeviceSwitchToUiState(switchState: DeviceSwitchState): DeviceControlUiState.Ready =
+    private fun mapDeviceSwitchToUiState(switchState: DeviceRemoteControlStatus): DeviceControlUiState.Ready =
         DeviceControlUiState.Ready(
-            isOn = switchState.lightSwitchOn,
-            isAuto = switchState.lightAutoSwitch,
+            isOn = switchState.manualOn,
+            isAuto = switchState.autoOn,
             deviceName = deviceName
         )
 
     private fun deviceReady(): Boolean = uiState.value is DeviceControlUiState.Ready
 
-    private fun updateDeviceControl(switchOn: Boolean, autoSwitch: Boolean) {
+    private fun tryGetIsLightOn(): Boolean? =
+        (uiState.value as? HasDeviceControlState)?.isOn
+    private fun tryGetIsAuto(): Boolean? =
+        (uiState.value as? HasDeviceControlState)?.isAuto
+
+
+    private fun updateDeviceAutoMode(autoSwitch: Boolean) {
         _uiState.value = DeviceControlUiState.Updating(
-            isOn = switchOn,
+            isOn = tryGetIsLightOn() ?: false,
             isAuto = autoSwitch,
             deviceName = deviceName
         )
 
         viewModelScope.launch(ioDispatcher) {
-            val result = updateLightControlUseCase(
-                switchOn = switchOn,
-                autoSwitch = autoSwitch
+            val result = deviceControlRepository.updateLightAutoMode(
+                autoSwitch
             )
-            processDeviceSwitchUpdateResult(result)
-        }
 
+            result.onSuccess {
+                _uiState.value = DeviceControlUiState.Ready(
+                    isOn = tryGetIsLightOn() ?: false,
+                    isAuto = autoSwitch,
+                    deviceName = deviceName
+                )
+            }
+        }
+    }
+
+    private fun updateSwitchOnOff(switchOn: Boolean) {
+        _uiState.value = DeviceControlUiState.Updating(
+            isOn = switchOn,
+            isAuto = tryGetIsAuto() ?: false,
+            deviceName = deviceName
+        )
+
+        viewModelScope.launch(ioDispatcher) {
+            val result = deviceControlRepository.updateLightOn(
+                switchOn
+            )
+
+            result.onSuccess {
+                _uiState.value = DeviceControlUiState.Ready(
+                    isOn = switchOn,
+                    isAuto = tryGetIsAuto() ?: false,
+                    deviceName = deviceName
+                )
+            }
+        }
     }
 
     fun clickPowerButton() {
@@ -87,7 +118,7 @@ class DeviceControlViewModel @Inject constructor(
         }
 
         (uiState.value as? DeviceControlUiState.Ready)?.let {
-            updateDeviceControl(!it.isOn, it.isAuto)
+            updateSwitchOnOff(!it.isOn)
         }
     }
 
@@ -97,7 +128,7 @@ class DeviceControlViewModel @Inject constructor(
         }
 
         (uiState.value as? DeviceControlUiState.Ready)?.let {
-            updateDeviceControl(it.isOn, !it.isAuto)
+            updateDeviceAutoMode(!it.isAuto)
         }
     }
 }

@@ -84,8 +84,8 @@ internal fun createPreviewList(): Pair<List<DeviceColorInfo>, List<DeviceColorIn
         DeviceColorInfo(
             state = ColorState.NIGHT,
             color = LightColor(
-                "따뜻한 톤",
-                color = ColorCode("FFF0D4")
+                color = ColorCode("FFF0D4"),
+                100
             )
         )
     )
@@ -94,22 +94,22 @@ internal fun createPreviewList(): Pair<List<DeviceColorInfo>, List<DeviceColorIn
         DeviceColorInfo(
             state = ColorState.SUNNY,
             color = LightColor(
-                "밝은 노랑색",
-                color = ColorCode("FFFCA0")
+                color = ColorCode("FFFCA0"),
+                100
             )
         ),
         DeviceColorInfo(
             state = ColorState.CLOUDY,
             color = LightColor(
-                "청록색",
-                color = ColorCode("ADFCFF")
+                color = ColorCode("ADFCFF"),
+                100
             )
         ),
         DeviceColorInfo(
             state = ColorState.RAINY,
             color = LightColor(
-                "파랑색",
-                color = ColorCode("5FA6E9")
+                color = ColorCode("5FA6E9"),
+                100
             )
         )
     )

@@ -1,7 +1,9 @@
 package com.example.lumentree.core.model.error
 
-class NoDeviceFoundError: Exception()
+class NoDeviceFoundException: Exception()
 
 class DeviceConnectionError: Exception()
 
-class DeviceNotConnectedError: Exception()
+class DeviceNotConnectedException: Exception()
+
+class BluetoothUnavailableException: Exception()

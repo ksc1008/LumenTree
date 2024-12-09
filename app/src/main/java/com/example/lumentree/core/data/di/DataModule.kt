@@ -1,11 +1,13 @@
 package com.example.lumentree.core.data.di
 
+import com.example.lumentree.core.data.repository.DeviceColorRepository
 import com.example.lumentree.core.data.repository.DeviceControlRepository
 import com.example.lumentree.core.data.repository.DeviceInfoRepository
 import com.example.lumentree.core.data.repository.DeviceListRepository
-import com.example.lumentree.core.data.repository.FakeDeviceControlRepositoryImpl
-import com.example.lumentree.core.data.repository.FakeDeviceInfoRepositoryImpl
-import com.example.lumentree.core.data.repository.FakeDeviceListRepositoryImpl
+import com.example.lumentree.core.data.repositoryimplentation.DeviceColorRepositoryImpl
+import com.example.lumentree.core.data.repositoryimplentation.DeviceControlRepositoryImpl
+import com.example.lumentree.core.data.repositoryimplentation.DeviceInfoRepositoryImpl
+import com.example.lumentree.core.data.repositoryimplentation.DeviceListRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -16,16 +18,21 @@ import dagger.hilt.components.SingletonComponent
 abstract class DataModule {
     @Binds
     internal abstract fun bindsDeviceInfoRepository(
-        deviceInfoRepository: FakeDeviceInfoRepositoryImpl
+        deviceInfoRepository: DeviceInfoRepositoryImpl
     ): DeviceInfoRepository
 
     @Binds
     internal abstract fun bindsDeviceListRepository(
-        deviceListRepository: FakeDeviceListRepositoryImpl
+        deviceListRepository: DeviceListRepositoryImpl
     ): DeviceListRepository
 
     @Binds
     internal abstract fun bindsDeviceControlRepository(
-        deviceControlRepository: FakeDeviceControlRepositoryImpl
+        deviceControlRepository: DeviceControlRepositoryImpl
     ): DeviceControlRepository
+
+    @Binds
+    internal abstract fun bindsDeviceColorRepository(
+        deviceColorRepository: DeviceColorRepositoryImpl
+    ): DeviceColorRepository
 }

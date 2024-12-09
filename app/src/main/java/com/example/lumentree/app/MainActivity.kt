@@ -12,8 +12,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.lumentree.app.navigation.LumenTreeNavHost
 import com.example.lumentree.feature.device.LumenTreeBottomNavigation
 import com.example.lumentree.feature.device_selector.navigation.DeviceSelector
+import com.example.lumentree.feature.test_page.TestScreen
 import com.example.lumentree.ui.theme.LumenTreeTheme
 import dagger.hilt.android.AndroidEntryPoint
+
+const val TEST_SEQUENCE = false
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -25,21 +28,33 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
 
             LumenTreeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        LumenTreeBottomNavigation(
-                            modifier = Modifier,
-                            navController = navController
+                if(TEST_SEQUENCE){
+                    Scaffold(modifier = Modifier.fillMaxSize(),
+                    ) { innerPadding ->
+                        TestScreen(
+                            modifier = Modifier.padding(
+                                innerPadding
+                            )
                         )
                     }
-                ) { innerPadding ->
-                    LumenTreeNavHost(
-                        Modifier
-                            .padding(innerPadding)
-                            .fillMaxSize(),
-                        navController,
-                        DeviceSelector
-                    )
+                }
+                else {
+                    Scaffold(modifier = Modifier.fillMaxSize(),
+                        bottomBar = {
+                            LumenTreeBottomNavigation(
+                                modifier = Modifier,
+                                navController = navController
+                            )
+                        }
+                    ) { innerPadding ->
+                        LumenTreeNavHost(
+                            Modifier
+                                .padding(innerPadding)
+                                .fillMaxSize(),
+                            navController,
+                            DeviceSelector
+                        )
+                    }
                 }
             }
         }

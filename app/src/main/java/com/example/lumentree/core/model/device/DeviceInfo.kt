@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class DeviceInfo(
+    val name: String,
     val macAddress: String
 )

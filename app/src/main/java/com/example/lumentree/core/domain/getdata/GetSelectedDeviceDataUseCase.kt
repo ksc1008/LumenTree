@@ -12,13 +12,6 @@ class GetSelectedDeviceDataUseCase @Inject constructor(
     suspend operator fun invoke(): Result<DeviceFormalStatus> {
         val result = deviceListRepository.fetchConnectedDevice()
 
-        result.fold(
-            onSuccess = {
-                return deviceInfoRepository.getDeviceStatus(it)
-            },
-            onFailure = {
-                return Result.failure(it)
-            }
-        )
+        return Result.failure(Exception())
     }
 }

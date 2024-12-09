@@ -6,13 +6,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,7 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.lumentree.core.model.device.DeviceInfo
+import kotlinx.coroutines.delay
 
 @Preview(showBackground = true)
 @Composable
@@ -34,7 +39,7 @@ fun DeviceSelectorScreenPreview() {
     val device = DeviceSelectorUiState.WithDevice(
         deviceName = "Preview Name",
         autoLightEnabled = true,
-        asmrEnabled = false,
+        weatherEnabled = false,
         wifiEnabled = true
     )
     val noDevice = DeviceSelectorUiState.NoDevice
@@ -53,6 +58,13 @@ fun DeviceSelectorScreen(
 ) {
     val uiState = viewModel.uiState.collectAsState()
 
+    LaunchedEffect(uiState.value is DeviceSelectorUiState.WithDevice){
+        while(true) {
+            delay(1000)
+            viewModel.refreshDeviceInfo()
+        }
+    }
+
     DeviceSelectorScreenContent(
         modifier = modifier,
         uiState = uiState.value,
@@ -68,39 +80,15 @@ private fun DeviceSelectorScreenContent(
     uiState: DeviceSelectorUiState,
     onDeviceClick: () -> Unit = {},
     onDeviceNameEditEnd: (String) -> Unit = {},
-    onSettingButtonClick: () -> Unit = {}
+    onSettingButtonClick: () -> Unit = {},
 ) {
-    when (uiState) {
-        is DeviceSelectorUiState.Fetching -> {
-
-        }
-
-        is DeviceSelectorUiState.NoDevice -> {
-            DeviceInfoScreen(
-                modifier = modifier,
-                state = uiState,
-                onDeviceClick = onDeviceClick,
-                onDeviceNameEditEnd = onDeviceNameEditEnd,
-                onDeviceSettingClick = onSettingButtonClick
-            )
-
-        }
-
-        is DeviceSelectorUiState.Error -> {
-
-        }
-
-        is DeviceSelectorUiState.WithDevice -> {
-            DeviceInfoScreen(
-                modifier = modifier,
-                state = uiState,
-                onDeviceClick = onDeviceClick,
-                onDeviceNameEditEnd = onDeviceNameEditEnd,
-                onDeviceSettingClick = onSettingButtonClick
-            )
-        }
-
-    }
+    DeviceInfoScreen(
+        modifier = modifier,
+        state = uiState,
+        onDeviceClick = onDeviceClick,
+        onDeviceNameEditEnd = onDeviceNameEditEnd,
+        onDeviceSettingClick = onSettingButtonClick
+    )
 }
 
 @Composable
@@ -130,33 +118,83 @@ private fun DeviceInfoScreen(
     ) {
         Column(verticalArrangement = Arrangement.Center) {
             DeviceImageIndicator(
-                Modifier.size(width = 287.dp, height = 287.dp),
-                hasDevice = state is DeviceSelectorUiState.WithDevice,
+                Modifier.size(width = 287.dp, height = 287.dp)
+                    .align(Alignment.CenterHorizontally),
+                hasDevice = true,
                 offsetY = 60.dp,
                 onClick = onDeviceClick
             )
-            (state as? DeviceSelectorUiState.WithDevice)?.let {
-                DeviceInfo(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    state = it,
-                    editingState = editingState,
-                    editable = editable,
-                    onEditButtonClick = {
-                        editable = true
-                        editingState = it.deviceName
-                    },
-                    onTextEdit = { newValue ->
-                        editingState = newValue
-                    },
-                    onSettingButtonClick = onDeviceSettingClick
-                )
-            } ?: Text(
-                text = ADD_DEVICE_DESCRIPTION,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 20.dp)
-            )
+            when (state) {
+                DeviceSelectorUiState.Connecting ->
+                    Text(
+                        text = CONNECTING_DESCRIPTION,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 20.dp)
+                    )
+
+                is DeviceSelectorUiState.Error -> {
+                    Text(
+                        text = ERROR_DESCRIPTION,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 20.dp)
+                    )
+                    Column(
+                        modifier = Modifier
+                            .height(400.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(30.dp)
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = state.cause.stackTraceToString(),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(top = 20.dp)
+                        )
+                    }
+                }
+
+                DeviceSelectorUiState.Fetching ->
+                    Text(
+                        text = "",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 20.dp)
+                    )
+
+                DeviceSelectorUiState.NoDevice -> {
+                    Text(
+                        text = ADD_DEVICE_DESCRIPTION,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 20.dp)
+                    )
+                }
+
+                is DeviceSelectorUiState.WithDevice ->
+                    DeviceInfo(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        state = state,
+                        editingState = editingState,
+                        editable = editable,
+                        onEditButtonClick = {
+                            editable = true
+                            editingState = state.deviceName
+                        },
+                        onTextEdit = { newValue ->
+                            editingState = newValue
+                        },
+                        onSettingButtonClick = onDeviceSettingClick
+                    )
+            }
         }
     }
 
@@ -165,7 +203,7 @@ private fun DeviceInfoScreen(
 @Composable
 private fun DeviceInfo(
     modifier: Modifier = Modifier,
-    state: DeviceSelectorUiState,
+    state: DeviceSelectorUiState.WithDevice,
     editingState: String,
     editable: Boolean,
     onEditButtonClick: () -> Unit,
@@ -192,9 +230,9 @@ private fun DeviceInfo(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
                 .padding(bottom = 50.dp),
-            autoLightEnabled = true,
-            asmrEnabled = true,
-            wifiEnabled = true,
+            autoLightEnabled = state.autoLightEnabled,
+            weatherEnabled = state.weatherEnabled,
+            wifiEnabled = state.wifiEnabled,
             iconSize = 16.dp
         )
 
@@ -209,12 +247,4 @@ private fun DeviceInfo(
         }
 
     }
-}
-
-@Composable
-private fun AddDeviceScreen(
-    modifier: Modifier = Modifier,
-    onAddButtonClick: () -> Unit
-) {
-
 }

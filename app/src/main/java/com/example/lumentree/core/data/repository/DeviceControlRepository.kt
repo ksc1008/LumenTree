@@ -1,9 +1,11 @@
 package com.example.lumentree.core.data.repository
 
-import com.example.lumentree.core.model.devicecontrol.DeviceSwitchState
+import com.example.lumentree.core.model.devicecontrol.DeviceRemoteControlStatus
 
 interface DeviceControlRepository {
-    suspend fun updateLightControlState(switchOn: Boolean, autoOn: Boolean): Result<DeviceSwitchState>
+    suspend fun updateLightOn(switchOn: Boolean): Result<Unit>
 
-    suspend fun getLightControlState(): Result<DeviceSwitchState>
+    suspend fun updateLightAutoMode(auto: Boolean): Result<Unit>
+
+    suspend fun getLightControlState(): Result<DeviceRemoteControlStatus>
 }

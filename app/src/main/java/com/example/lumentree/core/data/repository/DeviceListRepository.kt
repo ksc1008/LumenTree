@@ -8,4 +8,6 @@ interface DeviceListRepository {
     suspend fun fetchPairedDevice(): Result<List<DeviceInfo>>
 
     suspend fun connectToDevice(deviceInfo: DeviceInfo): Result<Unit>
+
+    suspend fun sendTestMessage(): Result<String>
 }

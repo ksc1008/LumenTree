@@ -3,10 +3,9 @@ package com.example.lumentree.feature.device_selector
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lumentree.app.di.IoDispatcher
-import com.example.lumentree.core.domain.getdata.ConnectToLastConnectedDeviceUseCase
-import com.example.lumentree.core.domain.getdata.GetSelectedDeviceDataUseCase
-import com.example.lumentree.core.model.device.DeviceFormalStatus
-import com.example.lumentree.core.model.error.NoDeviceFoundError
+import com.example.lumentree.core.data.repository.DeviceInfoRepository
+import com.example.lumentree.core.domain.getdata.ConnectToDeviceUseCase
+import com.example.lumentree.core.model.error.NoDeviceFoundException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,8 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DeviceSelectorViewModel @Inject constructor(
-    private val getSelectedDeviceDataUseCase: GetSelectedDeviceDataUseCase,
-    private val connectDeviceUseCase: ConnectToLastConnectedDeviceUseCase,
+    private val connectDeviceUseCase: ConnectToDeviceUseCase,
+    private val deviceInfoRepository: DeviceInfoRepository,
     @IoDispatcher
     private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
@@ -28,16 +27,12 @@ class DeviceSelectorViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     private fun initializeUiState(): MutableStateFlow<DeviceSelectorUiState> {
-        val state = MutableStateFlow<DeviceSelectorUiState>(DeviceSelectorUiState.Fetching)
+        val state = MutableStateFlow<DeviceSelectorUiState>(DeviceSelectorUiState.Connecting)
 
         viewModelScope.launch(ioDispatcher) {
-            var result = getSelectedDeviceDataUseCase()
+            val result = connectDeviceUseCase()
             result.onFailure {
-                result = reconnectIfDisconnected()
-            }
-
-            result.onFailure {
-                if (it is NoDeviceFoundError) {
+                if (it is NoDeviceFoundException) {
                     state.emit(DeviceSelectorUiState.NoDevice)
                 } else {
                     state.emit(
@@ -47,55 +42,74 @@ class DeviceSelectorViewModel @Inject constructor(
                         )
                     )
                 }
+            }.onSuccess {
+                state.emit(DeviceSelectorUiState.Fetching)
+                fetchDeviceInfoAndUpdateState()
             }
-                .onSuccess {
-                    state.emit(
-                        mapDeviceStatus(it)
-                    )
-                }
         }
 
         return state
     }
 
-    private suspend fun reconnectIfDisconnected(): Result<DeviceFormalStatus> {
-        val result = connectDeviceUseCase()
+    private suspend fun fetchDeviceInfoAndUpdateState() {
+        val newState = fetchDeviceInfo()
+        _uiState.value = newState
+    }
 
-        result.fold(
-            onSuccess = {
-                return getSelectedDeviceDataUseCase()
-            },
-            onFailure = {
-                return Result.failure(it)
-            }
+    private suspend fun fetchDeviceInfo(): DeviceSelectorUiState {
+        val result = deviceInfoRepository.getDeviceStatus()
+        result.onSuccess {
+            return DeviceSelectorUiState.WithDevice(
+                deviceName = it.name,
+                wifiEnabled = true,
+                weatherEnabled = it.weatherEnabled,
+                autoLightEnabled = it.deviceTimingOption.enableAutoSwitch
+            )
+        }.onFailure {
+            return DeviceSelectorUiState.Error(
+                message = it.message ?: "",
+                cause = it
+            )
+        }
+
+        return DeviceSelectorUiState.Error(
+            message = "Unknown Error",
+            cause = Exception()
         )
     }
 
-    private fun mapDeviceStatus(status: DeviceFormalStatus): DeviceSelectorUiState =
-        DeviceSelectorUiState.WithDevice(
-            deviceName = status.name,
-            asmrEnabled = status.playSound,
-            wifiEnabled = status.connectedToWiFi,
-            autoLightEnabled = status.autoSwitch
-        )
-
     private fun editNameState(newValue: String) {
+        val oldValue = _uiState.value
         (uiState.value as? DeviceSelectorUiState.WithDevice)?.let {
             val newState = it.copy(
                 deviceName = newValue
             )
             _uiState.value = newState
         }
+
+        viewModelScope.launch(ioDispatcher) {
+            val result = deviceInfoRepository.updateDeviceName(newValue)
+            result.onFailure {
+                _uiState.value = DeviceSelectorUiState.Error(
+                    message = it.message ?: "",
+                    cause = it
+                )
+            }
+        }
     }
 
     fun onNameEditFinished(value: String) {
-        if(value.isEmpty()) {
+        if (value.isEmpty()) {
             return
         }
         editNameState(value)
     }
 
-    fun onDeviceClick() {
-
+    fun refreshDeviceInfo() {
+        if(uiState.value is DeviceSelectorUiState.WithDevice) {
+            viewModelScope.launch(ioDispatcher) {
+                fetchDeviceInfoAndUpdateState()
+            }
+        }
     }
 }

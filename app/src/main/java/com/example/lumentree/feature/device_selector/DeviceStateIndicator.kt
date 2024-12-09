@@ -31,7 +31,7 @@ fun DeviceIndicatorPreview() {
         DeviceStateIndicator(
             wifiEnabled = true,
             autoLightEnabled = false,
-            asmrEnabled = true,
+            weatherEnabled = true,
             iconSize = 22.dp
         )
     }
@@ -42,7 +42,7 @@ fun DeviceStateIndicator(
     modifier: Modifier = Modifier,
     wifiEnabled: Boolean,
     autoLightEnabled: Boolean,
-    asmrEnabled: Boolean,
+    weatherEnabled: Boolean,
     iconSize: Dp = 0.dp
 ) {
     Row(
@@ -65,8 +65,8 @@ fun DeviceStateIndicator(
             size = iconSize
         )
         IndicatorIcon(
-            painter = painterResource(R.drawable.round_volume_up_24),
-            enabled = asmrEnabled,
+            painter = painterResource(R.drawable.rounded_weather_mix_24),
+            enabled = weatherEnabled,
             contentDescription = "Sound",
             size = iconSize
         )

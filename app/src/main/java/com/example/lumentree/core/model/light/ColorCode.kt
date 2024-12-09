@@ -1,15 +1,24 @@
 package com.example.lumentree.core.model.light
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 
-class ColorCode(mColorCode: String) {
+class ColorCode {
     val colorCode: String
     val color: Int
 
-    fun toComposeColor(): Color = Color(color)
+    constructor(mColorCode: Int) {
+        color = (mColorCode and 0xffffff)
+        var cd = Integer.toHexString(color)
+        while(cd.length<6){
+            cd = "0$cd"
+        }
+        colorCode = "#${cd}"
+        Log.d("KSC", Integer.toHexString(color))
+    }
 
-    init {
-        colorCode = try {
+    constructor(mColorCode: String) {
+        val code = try {
             if (!mColorCode.startsWith('#')) {
                 Color(android.graphics.Color.parseColor("#$mColorCode"))
                 "#$mColorCode"
@@ -20,7 +29,9 @@ class ColorCode(mColorCode: String) {
         } catch (e: Exception) {
             "#000000"
         }
-
+        colorCode = code
         color = android.graphics.Color.parseColor(colorCode)
     }
+
+    fun toComposeColor(intensity: Int = 255): Color = Color((color and 0xffffff).toLong() + (intensity.toLong() shl 24))
 }

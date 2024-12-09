@@ -1,12 +1,15 @@
 package com.example.lumentree.core.data.repository
 
-import com.example.lumentree.core.model.device.DeviceColorInfo
-import com.example.lumentree.core.model.device.DeviceFormalStatus
-import com.example.lumentree.core.model.device.DeviceInfo
-import kotlinx.coroutines.flow.Flow
+import com.example.lumentree.core.model.device_config.DeviceSetting
 
 interface DeviceInfoRepository {
-    suspend fun getDeviceStatus(device: DeviceInfo): Result<DeviceFormalStatus>
+    suspend fun getDeviceStatus(): Result<DeviceSetting>
 
-    suspend fun getDeviceColorInfoStatus(device: DeviceInfo): Result<Set<DeviceColorInfo>>
+    suspend fun updateDeviceName(name: String): Result<Unit>
+
+    suspend fun updateDeviceWeatherMode(on: Boolean): Result<Unit>
+
+    suspend fun updateDeviceLightOnTime(hour: Int, minute: Int): Result<Unit>
+
+    suspend fun updateDeviceLightOffTime(hour: Int, minute: Int): Result<Unit>
 }
